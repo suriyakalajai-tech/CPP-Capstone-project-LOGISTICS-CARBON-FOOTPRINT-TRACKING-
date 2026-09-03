@@ -1,0 +1,6 @@
+[
+  { "id": "NodeA", "name": "Warehouse Alpha", "coordinates": { "lat": 13.0827, "lng": 80.2707 } },
+  { "id": "NodeB", "name": "Hub Beta", "coordinates": { "lat": 12.9716, "lng": 77.5946 } },
+  { "id": "NodeC", "name": "Port Gamma", "coordinates": { "lat": 19.0760, "lng": 72.8777 } },
+  { "id": "NodeD", "name": "Terminal Delta", "coordinates": { "lat": 28.7041, "lng": 77.1025 } }
+]
