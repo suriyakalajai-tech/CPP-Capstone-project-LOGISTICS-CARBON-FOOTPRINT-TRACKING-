@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>LOGIFLOW | Creator Focus Dashboard</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#06090e;--surface:#0e131f;--text:#e6edf3;--muted:#7d8590;--border:1px solid #1f293d;--cyan:#00f3ff;--green:#00e676;--orange:#ffb703;--red:#ff2a5f;--blue:#0088ff;--grad:linear-gradient(135deg,#00f3ff,#0066fe);--title:'Orbitron',sans-serif}
+[data-theme=light]{--bg:#f1f5f9;--surface:#fff;--text:#0f172a;--muted:#64748b;--border:1px solid #cbd5e1;--cyan:#0284c7;--grad:linear-gradient(135deg,#0052cc,#0099ff)}
+*{box-sizing:border-box;margin:0;padding:0;font-family:Poppins,sans-serif}
+body{background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;position:relative}
+
+/* BACKGROUND MOVING PARTICLES CANVAS */
+#bg-particles-canvas {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; pointer-events: none;
+}
+
+/* OVERLAY - AUTHENTICATION MODAL */
+#welcomeOverlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(6, 9, 14, 0.75); 
+  backdrop-filter: blur(8px);
+  display: flex; justify-content: center; align-items: center; padding: 2rem;
+  transition: opacity 0.6s ease, visibility 0.6s ease;
+}
+#welcomeOverlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+.auth-container { text-align: center; max-width: 420px; width: 100%; position: relative; z-index: 2; background: rgba(14, 19, 31, 0.85); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 1.2rem; padding: 2.2rem 1.8rem; box-shadow: 0 0 35px rgba(0, 243, 255, 0.15); }
+.project-title { font-family: var(--title); font-size: 2rem; font-weight: 900; color: #fff; margin-bottom: 0.3rem; }
+.project-title span { color: var(--cyan); text-shadow: 0 0 15px var(--cyan); }
+.project-desc { color: var(--muted); font-size: 0.82rem; margin-bottom: 1.5rem; }
+
+/* AUTH FORM TABS */
+.auth-tabs { display: flex; gap: 0.5rem; background: rgba(255,255,255,0.05); padding: 0.3rem; border-radius: 0.6rem; margin-bottom: 1.5rem; }
+.auth-tab { flex: 1; padding: 0.5rem; font-size: 0.8rem; font-weight: 600; border: none; background: transparent; color: var(--muted); cursor: pointer; border-radius: 0.4rem; transition: 0.3s; }
+.auth-tab.active { background: var(--cyan); color: #06090e; font-weight: 700; }
+
+.auth-form { display: flex; flex-direction: column; gap: 1rem; text-align: left; }
+.auth-field label { display: block; font-size: 0.7rem; font-weight: 600; color: var(--cyan); margin-bottom: 0.3rem; text-transform: uppercase; }
+.auth-field input { width: 100%; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(0, 243, 255, 0.25); border-radius: 0.5rem; padding: 0.65rem 0.85rem; color: #fff; font-size: 0.85rem; outline: none; transition: 0.3s; }
+.auth-field input:focus { border-color: var(--cyan); box-shadow: 0 0 10px rgba(0,243,255,0.3); }
+
+.begin-btn {
+  background: var(--grad); color: #fff; border: 0; padding: 0.85rem; border-radius: 0.6rem;
+  font-family: var(--title); font-weight: 800; font-size: 0.85rem; cursor: pointer;
+  box-shadow: 0 0 20px rgba(0, 243, 255, 0.4); transition: 0.3s ease; margin-top: 0.5rem; width: 100%;
+}
+.begin-btn:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0, 243, 255, 0.7); }
+.auth-error { color: var(--red); font-size: 0.75rem; text-align: center; display: none; margin-top: 0.5rem; }
+
+/* MAIN DASHBOARD */
+.header{background:var(--surface);border-bottom:var(--border);padding:.75rem 2rem;display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1}
+.logo{font-family:var(--title);font-size:1.2rem;font-weight:800;color:var(--text);text-decoration:none}.logo span{color:var(--cyan)}
+.actions{display:flex;gap:.7rem;align-items:center}
+.user-display{font-size:.8rem;color:var(--cyan);font-weight:600;padding:0.4rem 0.8rem;background:rgba(0,243,255,0.1);border-radius:2rem;border:1px solid rgba(0,243,255,0.3)}
+.btn{background:rgba(0,243,255,.08);color:var(--cyan);border:1px solid var(--cyan);padding:.45rem .9rem;border-radius:2rem;text-decoration:none;font-size:.8rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:.4rem}
+.btn.active{background:var(--cyan);color:#06090e;font-weight:700}
+.layout{display:grid;grid-template-columns:370px 1fr;flex-grow:1;min-height:0;overflow:hidden;position:relative;z-index:1}
+.sidebar{background:var(--surface);border-right:var(--border);display:flex;flex-direction:column}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;padding:1rem;border-bottom:var(--border)}
+.stat{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:.5rem;padding:.65rem;text-align:center}
+.stat span{display:block;color:var(--muted);font-size:.65rem}.stat strong{font-family:var(--title);font-size:1.1rem}
+.feed-title{padding:.8rem 1rem .4rem;font-size:.78rem;font-weight:700;color:var(--muted);display:flex;justify-content:space-between}
+.feed{padding:.8rem 1rem;overflow:auto;flex:1}
+.card{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.08);border-radius:.7rem;padding:.85rem;margin-bottom:.7rem;cursor:pointer}
+.card:hover{border-color:var(--cyan);background:rgba(0,243,255,.05)}
+.main{position:relative;overflow:auto;padding:1.3rem}
+.hero{background:var(--surface);border:var(--border);border-radius:1rem;padding:1.2rem;margin-bottom:1rem}
+.hero h1{font-family:var(--title);font-size:1.35rem}.hero p{color:var(--muted);font-size:.8rem;margin-top:.3rem}
+.analysis{display:grid;grid-template-columns:1.2fr .8fr;gap:1rem}
+.panel{background:var(--surface);border:var(--border);border-radius:1rem;padding:1.1rem;margin-bottom:1rem}
+.panel h3{font-family:var(--title);font-size:.95rem;margin-bottom:.9rem}
+.route-form{display:grid;grid-template-columns:1fr 1fr;gap:.85rem}
+.input-block{background:rgba(0,136,255,0.06);border:1px solid rgba(0,243,255,0.35);border-radius:.65rem;padding:.6rem .8rem}
+.input-block label{display:block;font-size:.68rem;font-weight:600;color:var(--cyan);margin-bottom:.2rem;text-transform:uppercase}
+.input-block input,.input-block select{width:100%;background:transparent;border:none;color:var(--text);font-size:.85rem;font-weight:500;outline:none}
+.input-block select option{background:var(--surface);color:var(--text)}
+.route-form button{grid-column:span 2;background:var(--grad);border:0;color:#fff;padding:.8rem;border-radius:.65rem;font-weight:700;cursor:pointer;box-shadow:0 0 15px rgba(0,243,255,0.3)}
+.quick-presets{grid-column:span 2;margin-top:.4rem;padding-top:.8rem;border-top:1px dashed rgba(0,243,255,0.2)}
+.quick-presets label{display:block;font-size:.7rem;color:var(--cyan);margin-bottom:.6rem;font-weight:600}
+.preset-tags{display:flex;flex-wrap:wrap;gap:.5rem}
+.preset-tag{background:rgba(0,243,255,0.08);border:1px solid rgba(0,243,255,0.3);color:var(--cyan);padding:.4rem .7rem;border-radius:.45rem;font-size:.73rem;cursor:pointer}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem}.metric{padding:.9rem;border:1px solid rgba(255,255,255,.08);border-radius:.65rem;background:rgba(255,255,255,.025)}.metric span{font-size:.68rem;color:var(--muted);display:block}.metric strong{font-family:var(--title);font-size:1.05rem}
+.map{height:330px;border:1px solid rgba(0,243,255,.3);border-radius:.8rem;position:relative;overflow:hidden}
+.result{border:1px solid var(--green);background:rgba(0,230,118,.06);padding:1rem;border-radius:.7rem}.result strong{color:var(--green);font-family:var(--title)}
+.modebar{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem}.mode{padding:.7rem;text-align:center;border:1px solid rgba(255,255,255,.08);border-radius:.66rem;font-size:.72rem}.mode i{display:block;color:var(--cyan);font-size:1.1rem;margin-bottom:.3rem}
+.mode-breakdown-card { margin-top: 1rem; padding: 0.85rem; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 0.7rem; }
+.mode-row { display: flex; justify-content: space-between; align-items: center; padding: 0.55rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.76rem; }
+.mode-badge { display: inline-block; padding: 0.15rem 0.45rem; border-radius: 0.3rem; font-size: 0.65rem; font-weight: 700; margin-left: 0.4rem; font-family: var(--title); }
+.badge-co2 { background: rgba(0, 230, 118, 0.15); color: var(--green); border: 1px solid var(--green); }
+.badge-time { background: rgba(255, 183, 3, 0.15); color: var(--orange); border: 1px solid var(--orange); }
+.badge-opt { background: rgba(0, 243, 255, 0.15); color: var(--cyan); border: 1px solid var(--cyan); }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+
+<!-- MOVING BACKGROUND PARTICLES CANVAS -->
+<canvas id="bg-particles-canvas"></canvas>
+
+<!-- AUTHENTICATION OVERLAY -->
+<div id="welcomeOverlay">
+  <div class="auth-container">
+    <h1 class="project-title">LOGIFLOW <span>COMMAND</span></h1>
+    <p class="project-desc">Environmental Logistics Route Optimizer</p>
+    
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="loginTabBtn" onclick="switchTab('login')">Log In</button>
+      <button class="auth-tab" id="signupTabBtn" onclick="switchTab('signup')">Sign Up</button>
+    </div>
+
+    <!-- LOG IN FORM -->
+    <form class="auth-form" id="loginForm" onsubmit="handleAuth(event, 'login')">
+      <div class="auth-field">
+        <label><i class="fa-solid fa-envelope"></i> Email Address</label>
+        <input type="email" id="loginEmail" required placeholder="name@company.com">
+      </div>
+      <div class="auth-field">
+        <label><i class="fa-solid fa-lock"></i> Password</label>
+        <input type="password" id="loginPassword" required placeholder="••••••••">
+      </div>
+      <button type="submit" class="begin-btn">ACCESS DASHBOARD <i class="fa-solid fa-right-to-bracket"></i></button>
+    </form>
+
+    <!-- SIGN UP FORM -->
+    <form class="auth-form" id="signupForm" style="display: none;" onsubmit="handleAuth(event, 'signup')">
+      <div class="auth-field">
+        <label><i class="fa-solid fa-user"></i> Username</label>
+        <input type="text" id="signupUser" required placeholder="JohnDoe">
+      </div>
+      <div class="auth-field">
+        <label><i class="fa-solid fa-envelope"></i> Email Address</label>
+        <input type="email" id="signupEmail" required placeholder="name@company.com">
+      </div>
+      <div class="auth-field">
+        <label><i class="fa-solid fa-key"></i> Create Password</label>
+        <input type="password" id="signupPassword" required placeholder="••••••••">
+      </div>
+      <button type="submit" class="begin-btn">CREATE ACCOUNT <i class="fa-solid fa-user-plus"></i></button>
+    </form>
+
+    <div class="auth-error" id="authError"></div>
+  </div>
+</div>
+
+<header class="header">
+  <a class="logo" href="#"><i class="fa-solid fa-satellite-dish"></i> CARBON <span>COMMAND</span></a>
+  <div class="actions">
+    <!-- NAVIGATION TABS -->
+    <a href="index.html" class="btn"><i class="fa-solid fa-boxes-stacked"></i> Shipments</a>
+    <a href="dashboard.html" class="btn active"><i class="fa-solid fa-satellite-dish"></i> Carbon Command</a>
+    
+    <span class="user-display" id="userBadge"><i class="fa-solid fa-circle-user"></i> Guest</span>
+    <button class="btn" onclick="sync()"><i class="fa-solid fa-rotate"></i> Sync</button>
+    <button class="btn" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+    <button class="btn" id="theme"><i class="fa-solid fa-moon"></i></button>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="stats">
+      <div class="stat"><span>SHIPMENTS</span><strong id="shipCount">0</strong></div>
+      <div class="stat"><span>MODES</span><strong>4</strong></div>
+      <div class="stat"><span>STATUS</span><strong style="color:var(--green)">READY</strong></div>
+    </div>
+    <div class="feed-title"><span>SHIPMENT TRANSMISSIONS</span><span id="active">0 ACTIVE</span></div>
+    <div class="feed" id="feed"></div>
+  </aside>
+
+  <main class="main">
+    <section class="hero">
+      <h1><i class="fa-solid fa-leaf" style="color:var(--cyan)"></i> Pre-Dispatch Carbon Route Optimization</h1>
+      <p>Evaluate time and CO₂ together before dispatch using the project's dual-weighted route cost.</p>
+    </section>
+
+    <div class="analysis">
+      <div class="panel">
+        <h3><i class="fa-solid fa-route"></i> Module 1 — Carbon Engine</h3>
+        <div class="route-form">
+          <div class="input-block"><label><i class="fa-solid fa-location-dot"></i> Source</label><input id="src" value="Delhi"></div>
+          <div class="input-block"><label><i class="fa-solid fa-location-crosshairs"></i> Destination</label><input id="dst" value="London"></div>
+          <div class="input-block"><label><i class="fa-solid fa-weight-hanging"></i> Weight (kg)</label><input id="weight" type="number" value="20000"></div>
+          <div class="input-block"><label><i class="fa-solid fa-truck-fast"></i> Mode</label><select id="mode"><option>Road</option><option>Rail</option><option>Sea</option><option selected>Air</option></select></div>
+          <div class="input-block"><label><i class="fa-solid fa-clock"></i> α Time Weight</label><input id="alpha" type="number" step=".1" value="0.5"></div>
+          <div class="input-block"><label><i class="fa-solid fa-smog"></i> β CO₂ Weight</label><input id="beta" type="number" step=".1" value="0.5"></div>
+          <button id="calcBtn" onclick="optimize()"><i class="fa-solid fa-wand-magic-sparkles"></i> Calculate & Generate Green Route</button>
+
+          <div class="quick-presets">
+            <label><i class="fa-solid fa-bolt"></i> Quick Load Trade Corridors</label>
+            <div class="preset-tags">
+              <span class="preset-tag" onclick="loadPreset('Delhi', 'London', 20000, 'Air')"><i class="fa-solid fa-plane"></i> Delhi ➔ London</span>
+              <span class="preset-tag" onclick="loadPreset('Chennai', 'Singapore', 15000, 'Sea')"><i class="fa-solid fa-ship"></i> Chennai ➔ Singapore</span>
+              <span class="preset-tag" onclick="loadPreset('Mumbai', 'Dubai', 5000, 'Air')"><i class="fa-solid fa-plane"></i> Mumbai ➔ Dubai</span>
+              <span class="preset-tag" onclick="loadPreset('Chennai', 'Mumbai', 12000, 'Rail')"><i class="fa-solid fa-train"></i> Chennai ➔ Mumbai</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel">
+          <h3><i class="fa-solid fa-chart-line"></i> Route Analysis</h3>
+          <div class="metrics">
+            <div class="metric"><span>TIME</span><strong id="time">—</strong></div>
+            <div class="metric"><span>CO₂</span><strong id="co2">—</strong></div>
+            <div class="metric"><span>COMBINED COST</span><strong id="cost">—</strong></div>
+          </div>
+        </div>
+        <div class="panel">
+          <h3><i class="fa-solid fa-chart-column"></i> Multi-Modal Emissions Comparison</h3>
+          <canvas id="emissionChart" style="max-height: 220px;"></canvas>
+        </div>
+        <div class="panel">
+          <h3><i class="fa-solid fa-truck-plane"></i> Transport Modes</h3>
+          <div class="modebar">
+            <div class="mode"><i class="fa-solid fa-truck"></i>Road</div>
+            <div class="mode"><i class="fa-solid fa-train"></i>Rail</div>
+            <div class="mode"><i class="fa-solid fa-ship"></i>Sea</div>
+            <div class="mode"><i class="fa-solid fa-plane"></i>Air</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="result">
+            <strong>GREEN ROUTE RESULT</strong>
+            <p id="result" style="margin-top:.45rem;font-size:.78rem;color:var(--muted)">Enter shipment and route inputs to calculate a pre-dispatch recommendation.</p>
+          </div>
+          <div class="mode-breakdown-card" id="breakdownContainer" style="display:none;">
+            <h4 style="font-family:var(--title);font-size:.82rem;color:var(--cyan);margin-bottom:.5rem;"><i class="fa-solid fa-award"></i> Mode Efficiency Recommendations</h4>
+            <div id="modeComparisonList"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="grid-column:1/-1">
+        <h3><i class="fa-solid fa-map-location-dot"></i> Live Route Map</h3>
+        <div id="map" style="height: 330px; border-radius: .8rem; border: 1px solid rgba(0,243,255,.3);"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// BACKGROUND MOVING BRIGHT TINY PARTICLES SCRIPT
+(function() {
+  const pCanvas = document.getElementById('bg-particles-canvas');
+  const pCtx = pCanvas.getContext('2d');
+  let particlesArray = [];
+  const particleCount = 75;
+
+  function resizeParticlesCanvas() {
+    pCanvas.width = window.innerWidth;
+    pCanvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resizeParticlesCanvas);
+  resizeParticlesCanvas();
+
+  class BrightParticle {
+    constructor() { this.reset(); }
+    reset() {
+      this.x = Math.random() * pCanvas.width;
+      this.y = Math.random() * pCanvas.height;
+      this.size = Math.random() * 2 + 0.8;
+      this.vx = (Math.random() - 0.5) * 0.8;
+      this.vy = (Math.random() - 0.5) * 0.8;
+      this.alpha = Math.random() * 0.7 + 0.3;
+      this.glow = Math.random() * 8 + 4;
+    }
+    update() {
+      this.x += this.vx; this.y += this.vy;
+      if (this.x < 0) this.x = pCanvas.width;
+      if (this.x > pCanvas.width) this.x = 0;
+      if (this.y < 0) this.y = pCanvas.height;
+      if (this.y > pCanvas.height) this.y = 0;
+    }
+    draw() {
+      pCtx.save();
+      pCtx.beginPath();
+      pCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      pCtx.fillStyle = `rgba(0, 243, 255, ${this.alpha})`;
+      pCtx.shadowColor = '#00f3ff';
+      pCtx.shadowBlur = this.glow;
+      pCtx.fill();
+      pCtx.restore();
+    }
+  }
+
+  for (let i = 0; i < particleCount; i++) { particlesArray.push(new BrightParticle()); }
+  function animateParticles() {
+    pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+    for (let i = 0; i < particlesArray.length; i++) {
+      particlesArray[i].update();
+      particlesArray[i].draw();
+    }
+    requestAnimationFrame(animateParticles);
+  }
+  animateParticles();
+})();
+
+// AUTHENTICATION & STORAGE LOGIC
+function switchTab(tab) {
+  document.getElementById('authError').style.display = 'none';
+  if (tab === 'login') {
+    document.getElementById('loginForm').style.display = 'flex';
+    document.getElementById('signupForm').style.display = 'none';
+    document.getElementById('loginTabBtn').classList.add('active');
+    document.getElementById('signupTabBtn').classList.remove('active');
+  } else {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('signupForm').style.display = 'flex';
+    document.getElementById('signupTabBtn').classList.add('active');
+    document.getElementById('loginTabBtn').classList.remove('active');
+  }
+}
+
+function handleAuth(e, type) {
+  e.preventDefault();
+  const errDiv = document.getElementById('authError');
+  errDiv.style.display = 'none';
+
+  if (type === 'signup') {
+    const user = document.getElementById('signupUser').value.trim();
+    const email = document.getElementById('signupEmail').value.trim().toLowerCase();
+    const password = document.getElementById('signupPassword').value;
+
+    let users = JSON.parse(localStorage.getItem('logiflow_users') || '[]');
+    if (users.find(u => u.email === email)) {
+      errDiv.textContent = 'An account with this email already exists!';
+      errDiv.style.display = 'block';
+      return;
+    }
+
+    const newUser = { user, email, password };
+    users.push(newUser);
+    localStorage.setItem('logiflow_users', JSON.stringify(users));
+    localStorage.setItem('logiflow_activeUser', JSON.stringify(newUser));
+    grantAccess(user);
+  } else {
+    const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+    const password = document.getElementById('loginPassword').value;
+
+    let users = JSON.parse(localStorage.getItem('logiflow_users') || '[]');
+    const found = users.find(u => u.email === email && u.password === password);
+
+    if (found) {
+      localStorage.setItem('logiflow_activeUser', JSON.stringify(found));
+      grantAccess(found.user);
+    } else {
+      errDiv.textContent = 'Invalid email or password.';
+      errDiv.style.display = 'block';
+    }
+  }
+}
+
+function grantAccess(username) {
+  document.getElementById('userBadge').innerHTML = `<i class="fa-solid fa-circle-user"></i> ${username}`;
+  document.getElementById('welcomeOverlay').classList.add('hidden');
+  setTimeout(() => { map.invalidateSize(); }, 300);
+}
+
+function logout() {
+  localStorage.removeItem('logiflow_activeUser');
+  document.getElementById('welcomeOverlay').classList.remove('hidden');
+}
+
+// Check if user is already logged in on load
+window.addEventListener('DOMContentLoaded', () => {
+  const activeUser = JSON.parse(localStorage.getItem('logiflow_activeUser') || 'null');
+  if (activeUser && activeUser.user) {
+    grantAccess(activeUser.user);
+  }
+});
+
+const modes = { Road: { factor: 0.105, speed: 60 }, Rail: { factor: 0.028, speed: 75 }, Sea: { factor: 0.012, speed: 30 }, Air: { factor: 0.600, speed: 750 } };
+let chartInstance = null;
+
+function loadPreset(src, dst, weight, mode) {
+  document.getElementById('src').value = src;
+  document.getElementById('dst').value = dst;
+  document.getElementById('weight').value = weight;
+  document.getElementById('mode').value = mode;
+  optimize();
+}
+
+async function renderComparisonChart(distance, weight) {
+  const modeList = ['Road', 'Rail', 'Sea', 'Air'];
+  const co2Data = [];
+  for (const mode of modeList) {
+    try {
+      const res = await fetch('/api/routes/optimize', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ distance, weight, mode }) });
+      const { data } = await res.json();
+      co2Data.push(data.co2Kg);
+    } catch(e) {
+      const co2 = Math.round((distance * (weight / 1000) * modes[mode].factor) * 10) / 10;
+      co2Data.push(co2);
+    }
+  }
+  const ctx = document.getElementById('emissionChart').getContext('2d');
+  if (chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: { labels: modeList, datasets: [{ label: 'CO₂ Emissions (kg)', data: co2Data, backgroundColor: ['#0088ff', '#00e676', '#ffb703', '#ff2a5f'] }] },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#7d8590' }, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { ticks: { color: '#7d8590' }, grid: { display: false } } } }
+  });
+}
+
+const CITY_COORDS = { chennai: [13.0827, 80.2707], mumbai: [19.0760, 72.8777] };
+const geocodeCache = {};
+async function geocodeCity(name) {
+  const key = name.trim().toLowerCase();
+  if (!key) return null;
+  if (geocodeCache[key]) return geocodeCache[key];
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(name)}`;
+    const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+    const data = await res.json();
+    if (data && data.length > 0) {
+      const coords = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+      geocodeCache[key] = coords;
+      return coords;
+    }
+  } catch (err) { console.error(err); }
+  return null;
+}
+
+async function fetchRoadRoute(srcCoords, dstCoords) {
+  try {
+    const url = `https://router.project-osrm.org/route/v1/driving/${srcCoords[1]},${srcCoords[0]};${dstCoords[1]},${dstCoords[0]}?overview=full&geometries=geojson`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+      return { coords: data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]), distanceKm: data.routes[0].distance / 1000 };
+    }
+  } catch (err) { console.error(err); }
+  return null;
+}
+
+function haversineDistanceKm(a, b) {
+  const R = 6371;
+  const dLat = (b[0] - a[0]) * Math.PI / 180;
+  const dLng = (b[1] - a[1]) * Math.PI / 180;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a[0] * Math.PI / 180) * Math.cos(b[0] * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+const ROUTE_STYLES = { Road: { color: '#00f3ff', weight: 4 }, Rail: { color: '#ffb703', weight: 4, dashArray: '2,10' }, Sea: { color: '#0088ff', weight: 3, dashArray: '1,10' }, Air: { color: '#ff2a5f', weight: 3, dashArray: '10,6' }, Unroutable: { color: '#ff5252', weight: 3, dashArray: '3,9' } };
+
+function computeCurvedArc(srcCoords, dstCoords, curvature) {
+  const midLat = (srcCoords[0] + dstCoords[0]) / 2, midLng = (srcCoords[1] + dstCoords[1]) / 2;
+  const dx = dstCoords[1] - srcCoords[1], dy = dstCoords[0] - srcCoords[0];
+  const offsetLat = midLat - dx * curvature, offsetLng = midLng + dy * curvature;
+  const points = [];
+  for (let t = 0; t <= 1; t += 0.02) {
+    points.push([(1 - t) * (1 - t) * srcCoords[0] + 2 * (1 - t) * t * offsetLat + t * t * dstCoords[0], (1 - t) * (1 - t) * srcCoords[1] + 2 * (1 - t) * t * offsetLng + t * t * dstCoords[1]]);
+  }
+  return points;
+}
+
+let activeMarkers = [], routePolyline = null;
+async function updateMapRoute(srcName, dstName, mode) {
+  document.getElementById('result').textContent = `Locating "${srcName}" and "${dstName}"...`;
+  const [geoSrc, geoDst] = await Promise.all([geocodeCity(srcName), geocodeCity(dstName)]);
+  const srcCoords = geoSrc || CITY_COORDS['chennai'], dstCoords = geoDst || CITY_COORDS['mumbai'];
+  activeMarkers.forEach(m => map.removeLayer(m)); activeMarkers = [];
+  if (routePolyline) map.removeLayer(routePolyline);
+
+  const m1 = L.marker(srcCoords).addTo(map).bindPopup(`Source: ${srcName}`).openPopup();
+  const m2 = L.marker(dstCoords).addTo(map).bindPopup(`Destination: ${dstName}`);
+  activeMarkers.push(m1, m2);
+
+  let routeCoords, distanceKm, noLandRoute = false;
+  if (mode === 'Road' || mode === 'Rail') {
+    const road = await fetchRoadRoute(srcCoords, dstCoords);
+    if (road) { routeCoords = road.coords; distanceKm = road.distanceKm; }
+    else { noLandRoute = true; routeCoords = [srcCoords, dstCoords]; distanceKm = haversineDistanceKm(srcCoords, dstCoords); }
+  } else if (mode === 'Sea') {
+    routeCoords = computeCurvedArc(srcCoords, dstCoords, 0.22); distanceKm = haversineDistanceKm(srcCoords, dstCoords) * 1.15;
+  } else {
+    routeCoords = computeCurvedArc(srcCoords, dstCoords, 0.05); distanceKm = haversineDistanceKm(srcCoords, dstCoords);
+  }
+
+  const style = noLandRoute ? ROUTE_STYLES.Unroutable : (ROUTE_STYLES[mode] || ROUTE_STYLES.Road);
+  routePolyline = L.polyline(routeCoords, style).addTo(map);
+  map.fitBounds(L.latLngBounds([srcCoords, dstCoords]), { padding: [50, 50] });
+  return { srcCoords, dstCoords, mode, distanceKm, noLandRoute };
+}
+
+const map = L.map('map').setView([13.0827, 80.2707], 5);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 18 }).addTo(map);
+
+let currentShipments = [];
+function pick(obj, keys, fallback = '') { for (const k of keys) { if (obj[k]) return obj[k]; } return fallback; }
+
+async function render() {
+  const mockShipments = [
+    { id: 'SHP-101', src: 'Delhi', dst: 'London', weight: 20000, mode: 'Air' },
+    { id: 'SHP-102', src: 'Chennai', dst: 'Singapore', weight: 15000, mode: 'Sea' },
+    { id: 'SHP-103', src: 'Mumbai', dst: 'Dubai', weight: 5000, mode: 'Air' },
+    { id: 'SHP-104', src: 'Chennai', dst: 'Mumbai', weight: 12000, mode: 'Rail' }
+  ];
+
+  try {
+    const res = await fetch('/api/shipments');
+    if (!res.ok) throw new Error('API unavailable');
+    const response = await res.json();
+    currentShipments = (response.data && response.data.length > 0) ? response.data : mockShipments;
+  } catch (err) {
+    console.warn('Backend API unavailable. Loading demo fallback shipments.');
+    currentShipments = mockShipments;
+  }
+
+  document.getElementById('shipCount').textContent = currentShipments.length;
+  document.getElementById('active').textContent = currentShipments.length + ' ACTIVE';
+  
+  const f = document.getElementById('feed');
+  f.innerHTML = '';
+  
+  if (!currentShipments.length) {
+    f.innerHTML = '<div style="color:var(--muted);font-size:.78rem;text-align:center;padding:1.5rem">No shipment records found.</div>';
+    return;
+  }
+
+  currentShipments.forEach((x, i) => {
+    f.innerHTML += `
+      <div class="card" onclick="fillFromShipment(${i})">
+        <h4>${x.id || ('SHP-' + (i + 1))} • ${pick(x, ['src','source','origin'])} → ${pick(x, ['dst','destination'])}</h4>
+        <p>${pick(x, ['weight','goodsWeight'])} kg • ${pick(x, ['mode','preferredMode'])}</p>
+      </div>`;
+  });
+}
+
+function fillFromShipment(index) {
+  const x = currentShipments[index]; if (!x) return;
+  document.getElementById('src').value = pick(x, ['src', 'source', 'origin'], '');
+  document.getElementById('dst').value = pick(x, ['dst', 'destination'], '');
+  document.getElementById('weight').value = pick(x, ['weight', 'goodsWeight'], '');
+  document.getElementById('mode').value = pick(x, ['mode', 'preferredMode'], 'Road');
+}
+
+async function optimize() {
+  const btn = document.getElementById('calcBtn');
+  const src = document.getElementById('src').value || 'Delhi';
+  const dst = document.getElementById('dst').value || 'London';
+  const weight = Number(document.getElementById('weight').value) || 0;
+  const mode = document.getElementById('mode').value;
+  const alpha = Number(document.getElementById('alpha').value) || 0.5;
+  const beta = Number(document.getElementById('beta').value) || 0.5;
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+
+  try {
+    const { distanceKm } = await updateMapRoute(src, dst, mode);
+    const dist = Math.round(distanceKm * 10) / 10;
+    
+    let data;
+    try {
+      const res = await fetch('/api/routes/optimize', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ distance: dist, weight, mode, alpha, beta }) });
+      const result = await res.json();
+      if (!result.success) throw new Error(result.error);
+      data = result.data;
+    } catch(err) {
+      const transitHours = Math.round((dist / modes[mode].speed) * 10) / 10;
+      const co2Kg = Math.round((dist * (weight / 1000) * modes[mode].factor) * 10) / 10;
+      const combinedCost = (alpha * transitHours + beta * co2Kg).toFixed(2);
+      data = { mode, distanceKm: dist, transitHours, co2Kg, combinedCost };
+    }
+
+    document.getElementById('time').textContent = data.transitHours + ' h';
+    document.getElementById('co2').textContent = data.co2Kg + ' kg';
+    document.getElementById('cost').textContent = data.combinedCost;
+    document.getElementById('result').textContent = `Evaluation: ${data.mode} over ${data.distanceKm} km. Est. ${data.transitHours} h, ${data.co2Kg} kg CO2, combined cost ${data.combinedCost}`;
+
+    renderComparisonChart(dist, weight);
+
+    const modeList = ['Road', 'Rail', 'Sea', 'Air'];
+    const evaluations = [];
+    for (const m of modeList) {
+      const tHours = Math.round((dist / modes[m].speed) * 10) / 10;
+      const cKg = Math.round((dist * (weight / 1000) * modes[m].factor) * 10) / 10;
+      const cCost = (alpha * tHours + beta * cKg).toFixed(2);
+      evaluations.push({ mode: m, distanceKm: dist, transitHours: tHours, co2Kg: cKg, combinedCost: cCost });
+    }
+
+    const bestCO2Mode = [...evaluations].sort((a, b) => a.co2Kg - b.co2Kg)[0].mode;
+    const bestTimeMode = [...evaluations].sort((a, b) => a.transitHours - b.transitHours)[0].mode;
+    const bestOptimalMode = [...evaluations].sort((a, b) => parseFloat(a.combinedCost) - parseFloat(b.combinedCost))[0].mode;
+
+    document.getElementById('modeComparisonList').innerHTML = evaluations.map(e => `
+      <div class="mode-row">
+        <div><strong>${e.mode}</strong> ${e.mode === bestCO2Mode ? '<span class="mode-badge badge-co2">Best CO₂</span>' : ''}${e.mode === bestTimeMode ? '<span class="mode-badge badge-time">Fastest</span>' : ''}${e.mode === bestOptimalMode ? '<span class="mode-badge badge-opt">Optimal</span>' : ''}</div>
+        <div><span style="color:var(--green);">${e.co2Kg} kg CO₂</span> • <span style="color:var(--muted);">${e.transitHours} h</span> • <span style="color:var(--cyan);font-weight:600;">Cost: ${e.combinedCost}</span></div>
+      </div>`).join('');
+    document.getElementById('breakdownContainer').style.display = 'block';
+  } catch (err) { alert('Error: ' + err.message); }
+  finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Calculate & Generate Green Route'; }
+}
+
+function sync() { render(); alert('Feed synchronized.'); }
+document.getElementById('theme').onclick = () => {
+  const n = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', n);
+  localStorage.setItem('logiflow_theme', n);
+};
+document.documentElement.setAttribute('data-theme', localStorage.getItem('logiflow_theme') || 'dark');
+render();
+</script>
+</body>
+</html>

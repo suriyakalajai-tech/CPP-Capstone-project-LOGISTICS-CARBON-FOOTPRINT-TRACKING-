@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LOGIFLOW | Shipment Node</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg: #f0f4f8;
+      --card-bg: #ffffff;
+      --primary: #0084ff;
+      --text: #1e293b;
+      --border: #e2e8f0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 20px; }
+
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+    .logo { font-family: 'Orbitron', sans-serif; font-weight: 800; color: #0084ff; font-size: 1.5rem; text-decoration: none; }
+    .nav-btn { background: #0084ff; color: #fff; padding: 10px 18px; border-radius: 20px; text-decoration: none; font-weight: 600; font-size: 0.9rem; }
+
+    .hero-panel { background: #fff; border-radius: 12px; padding: 25px; margin-bottom: 25px; border: 1px solid var(--border); }
+    .hero-panel h2 { font-family: 'Orbitron', sans-serif; color: #0f172a; }
+
+    .grid-container { display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; }
+
+    .card { background: var(--card-bg); border-radius: 12px; padding: 22px; border: 1px solid var(--border); margin-bottom: 20px; }
+    .card h3 { font-family: 'Orbitron', sans-serif; font-size: 1.1rem; margin-bottom: 18px; color: #0f172a; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .form-group { display: flex; flex-direction: column; }
+    .form-group label { font-size: 0.8rem; font-weight: 600; margin-bottom: 5px; color: #64748b; }
+    .form-group input, .form-group select { padding: 10px; border: 1px solid var(--border); border-radius: 6px; outline: none; }
+    .full-width { grid-column: span 2; }
+
+    .btn-submit { background: #0084ff; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 15px; }
+    .btn-submit:hover { background: #0066cc; }
+
+    /* Module 2 Operations Card Interactive Styles */
+    .op-card { border-left: 4px solid #0084ff; background: #f8fafc; padding: 12px; border-radius: 6px; margin-bottom: 12px; cursor: pointer; transition: 0.2s; }
+    .op-card:hover { background: #e0f2fe; }
+    .op-card h4 { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; color: #0f172a; }
+    .op-card p { font-size: 0.75rem; color: #64748b; }
+
+    /* Shipment List Items */
+    .shipment-item { background: #f8fafc; border: 1px solid var(--border); padding: 12px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .shipment-info h5 { font-family: 'Orbitron', sans-serif; color: #0f172a; font-size: 0.9rem; }
+    .shipment-info p { font-size: 0.78rem; color: #64748b; }
+    .actions { display: flex; gap: 8px; }
+    .btn-action { border: none; background: none; cursor: pointer; font-size: 0.9rem; }
+    .btn-edit { color: #0084ff; }
+    .btn-delete { color: #ef4444; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="#" class="logo"><i class="fa-solid fa-box"></i> LOGIFLOW</a>
+    <a href="dashboard.html" class="nav-btn"><i class="fa-solid fa-leaf"></i> Carbon Command</a>
+  </header>
+
+  <div class="hero-panel">
+    <h2><i class="fa-solid fa-boxes-stacked"></i> Shipment Management Node</h2>
+    <p style="color: #64748b; font-size: 0.85rem;">Pre-dispatch logistics data intake for carbon-aware route planning across road, rail, sea, and air transport.</p>
+  </div>
+
+  <div class="grid-container">
+    
+    <!-- LEFT: Create & Modify Form -->
+    <div class="card" id="form-card">
+      <h3 id="form-title"><i class="fa-solid fa-paper-plane"></i> Create / Modify Shipment Record</h3>
+      
+      <form id="shipmentForm" onsubmit="saveShipment(event)">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Shipment ID</label>
+            <input type="text" id="shpId" placeholder="e.g. SHP-1001" required>
+          </div>
+          <div class="form-group">
+            <label>Goods Weight (kg)</label>
+            <input type="number" id="shpWeight" placeholder="e.g. 2500" required>
+          </div>
+          <div class="form-group">
+            <label>Source</label>
+            <input type="text" id="shpSrc" placeholder="Origin node" required>
+          </div>
+          <div class="form-group">
+            <label>Destination</label>
+            <input type="text" id="shpDst" placeholder="Destination node" required>
+          </div>
+          <div class="form-group">
+            <label>Preferred Transport Mode</label>
+            <select id="shpMode">
+              <option value="Road">Road</option>
+              <option value="Rail">Rail</option>
+              <option value="Sea">Sea</option>
+              <option value="Air">Air</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Dispatch Priority</label>
+            <select id="shpPriority">
+              <option value="Balanced">Balanced</option>
+              <option value="Lowest CO2">Lowest CO2</option>
+              <option value="Fastest Time">Fastest Time</option>
+            </select>
+          </div>
+          <div class="form-group full-width">
+            <label>Shipment Notes</label>
+            <input type="text" id="shpNotes" placeholder="Optional logistics notes">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit"><i class="fa-solid fa-database"></i> Save Shipment Record</button>
+      </form>
+    </div>
+
+    <!-- RIGHT: Module 2 Operations & Queue -->
+    <div>
+      <div class="card">
+        <h3><i class="fa-solid fa-layer-group"></i> Module 2 – Data Operations</h3>
+        
+        <div class="op-card" onclick="focusCreate()">
+          <h4>CREATE</h4>
+          <p>Click to start registering a brand new shipment record.</p>
+        </div>
+
+        <div class="op-card" onclick="promptSearch()">
+          <h4>READ / SEARCH</h4>
+          <p>Search active shipments stored in local persistence.</p>
+        </div>
+
+        <div class="op-card" onclick="alert('Click the Edit (pencil) or Delete (trash) icons next to any item in the Local Shipment Queue below.')">
+          <h4>UPDATE / DELETE</h4>
+          <p>Maintain accurate shipment data directly from the queue below.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3><i class="fa-solid fa-clock-rotate-left"></i> Local Shipment Queue</h3>
+        <div id="shipmentContainer">
+          <!-- Dynamically filled with shipments -->
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let currentShipments = [];
+
+    // 1. Fetch shipments on page load
+    async function loadShipments() {
+      try {
+        const res = await fetch('/api/shipments');
+        const result = await res.json();
+        currentShipments = result.data || [];
+        renderQueue(currentShipments);
+      } catch (e) {
+        console.error('Error reading shipments:', e);
+      }
+    }
+
+    // 2. Render Queue UI
+    function renderQueue(data) {
+      const container = document.getElementById('shipmentContainer');
+      if (!data || data.length === 0) {
+        container.innerHTML = '<p style="color:#94a3b8; font-size:0.8rem;">No shipments in queue.</p>';
+        return;
+      }
+
+      container.innerHTML = data.map(s => `
+        <div class="shipment-item">
+          <div class="shipment-info">
+            <h5>${s.id} • ${s.src} → ${s.dst}</h5>
+            <p>${s.weight} kg • ${s.mode} • ${s.priority}</p>
+          </div>
+          <div class="actions">
+            <button class="btn-action btn-edit" onclick="editShipment('${s.id}')" title="Edit"><i class="fa-solid fa-pen"></i></button>
+            <button class="btn-action btn-delete" onclick="deleteShipment('${s.id}')" title="Delete"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // 3. Save / Update Shipment
+    async function saveShipment(e) {
+      e.preventDefault();
+      const payload = {
+        id: document.getElementById('shpId').value,
+        weight: document.getElementById('shpWeight').value,
+        src: document.getElementById('shpSrc').value,
+        dst: document.getElementById('shpDst').value,
+        mode: document.getElementById('shpMode').value,
+        priority: document.getElementById('shpPriority').value,
+        notes: document.getElementById('shpNotes').value
+      };
+
+      await fetch('/api/shipments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      document.getElementById('shipmentForm').reset();
+      loadShipments();
+    }
+
+    // 4. Edit (Pre-fills Form)
+    function editShipment(id) {
+      const target = currentShipments.find(s => s.id === id);
+      if (!target) return;
+
+      document.getElementById('shpId').value = target.id;
+      document.getElementById('shpWeight').value = target.weight;
+      document.getElementById('shpSrc').value = target.src;
+      document.getElementById('shpDst').value = target.dst;
+      document.getElementById('shpMode').value = target.mode;
+      document.getElementById('shpPriority').value = target.priority || 'Balanced';
+      document.getElementById('shpNotes').value = target.notes || '';
+
+      document.getElementById('shpId').focus();
+    }
+
+    // 5. Delete Shipment
+    async function deleteShipment(id) {
+      if (confirm(`Delete shipment ${id}?`)) {
+        await fetch(`/api/shipments/${id}`, { method: 'DELETE' });
+        loadShipments();
+      }
+    }
+
+    // 6. Action card helpers
+    function focusCreate() {
+      document.getElementById('shipmentForm').reset();
+      document.getElementById('shpId').focus();
+    }
+
+    function promptSearch() {
+      const query = prompt("Enter Shipment ID, Source, or Destination to filter:");
+      if (query !== null) {
+        const filtered = currentShipments.filter(s => 
+          s.id.toLowerCase().includes(query.toLowerCase()) ||
+          s.src.toLowerCase().includes(query.toLowerCase()) ||
+          s.dst.toLowerCase().includes(query.toLowerCase())
+        );
+        renderQueue(filtered);
+      }
+    }
+
+    // Run on boot
+    loadShipments();
+  </script>
+</body>
+</html>
